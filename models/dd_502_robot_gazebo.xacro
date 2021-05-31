@@ -1,0 +1,398 @@
+<?xml version="1.0"?>
+<robot name = "robot_502" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Properties of body -->
+    <xacro:property name="body_radius" value="0.15" />
+    <xacro:property name="body_thick" value="0.15" />
+
+    <!-- Properties of inertial body -->
+    <!-- Value from properties solidwork -->
+    <xacro:property name="body_mass" value="10.42" />
+    <xacro:property name="body_cm" value="0 0 -0.042" />
+    <xacro:property name="body_ixx" value="0.071567"/>
+    <xacro:property name="body_ixy" value="0.00"/>
+    <xacro:property name="body_ixz" value="0.00"/>
+    <xacro:property name="body_iyy" value="0.071444"/>
+    <xacro:property name="body_iyz" value="0.00"/>
+    <xacro:property name="body_izz" value="0.122557"/>
+
+    <!-- Properties of wheel -->
+    <xacro:property name="wheel_radius" value="0.075" />
+    <xacro:property name="wheel_thick" value="0.025" />
+
+    <!-- Properties of inertial wheel -->
+    <!-- Value from properties solidwork -->
+    <xacro:property name="wheel_mass" value="0.42" />
+    <xacro:property name="wheel_cm" value="0 0 0" />
+    <xacro:property name="wheel_ixx" value="0.000613"/>
+    <xacro:property name="wheel_ixy" value="0.00"/>
+    <xacro:property name="wheel_ixz" value="0.00"/>
+    <xacro:property name="wheel_iyy" value="0.00"/>
+    <xacro:property name="wheel_iyz" value="0.000613"/>
+    <xacro:property name="wheel_izz" value="0.001183"/>
+
+    <!-- Properties of caster -->
+    <xacro:property name="caster_base_radius" value="0.02" />
+    <xacro:property name="caster_base_thick" value="0.01" />
+    <xacro:property name="caster_ball_radius" value="0.015" />
+
+    <!-- Properties of differential drive control -->
+    <xacro:property name="update_rate" value="10" />
+
+    <!-- Properties of lider -->
+    <xacro:property name="lider_position" value="0.125" />
+
+    <!-- Property of camera -->
+    <xacro:property name="camera_position" value="0.175" />
+    <xacro:property name="camera_size" value="0.05" /> 
+
+    <!-- macro of wheel -->
+    <xacro:macro name="wheel" params="name trans rot parent">
+        <joint name="${parent}_to_${name}" type="continuous">
+            <parent link="${parent}"/>
+            <child link="${name}_wheel"/>
+            <origin rpy="${rot}" xyz="${trans}"/>
+            <axis xyz="0 0 1"/>
+            <limit effort="1000" velocity="100"/>
+            <dynamics damping="0" fiction="0.8"/>
+        </joint>
+    
+        <link name="${name}_wheel">
+            <visual>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_thick}"/>
+                </geometry>
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_thick}"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <origin xyz="${wheel_cm}" rpy="0 0 0"/>
+                <mass value="${wheel_mass}"/>
+                <inertia ixx="${wheel_ixx}" ixy="${wheel_ixy}" ixz="${wheel_ixz}" iyy="${wheel_iyy}" iyz="${wheel_iyz}" izz="${wheel_izz}"/>
+            </inertial>
+        </link>
+
+        <gazebo reference="${name}_wheel">
+            <material>Gazebo/Black</material>
+            <mu1>0.8</mu1>
+            <mu2>0.8</mu2>
+        </gazebo>     
+
+    </xacro:macro>
+
+    <!-- macro of caster -->
+    <xacro:macro name="caster" params="name trans rot parent">
+        <joint name="${parent}_to_base_${name}" type="fixed">
+            <parent link="${parent}"/>
+            <child link="base_${name}"/>
+            <origin rpy="${rot}" xyz="${trans}"/>
+        </joint>
+    
+        <link name="base_${name}">
+            <visual>
+                <geometry>
+                    <cylinder radius="${caster_base_radius}" length="${caster_base_thick}"/>
+                </geometry>
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder radius="${caster_base_radius}" length="${caster_base_thick}"/>
+                </geometry>
+            </collision>
+        </link>
+
+         <gazebo reference="base_${name}">
+            <material>Gazebo/Grey</material>
+            <mu1>0.1</mu1>
+            <mu2>0.1</mu2>
+        </gazebo>
+
+        <joint name="base_${name}_to_ball_${name}" type="fixed">
+            <parent link="base_${name}"/>
+            <child link="ball_${name}"/>
+            <origin rpy="0 0 0" xyz="0 0 -0.02"/>
+        </joint>
+    
+        <link name="ball_${name}">
+            <visual>
+                <geometry>
+                    <sphere radius="${caster_ball_radius}"/>
+                </geometry>
+            </visual>
+            <collision>
+                <geometry>
+                    <sphere radius="${caster_ball_radius}"/>
+                </geometry>
+            </collision>
+        </link>
+
+        <gazebo reference="ball_${name}">
+            <material>Gazebo/Grey</material>
+            <mu1>0</mu1>
+            <mu2>0</mu2>
+        </gazebo>
+    </xacro:macro>
+
+    <!-- description of dd_502_robot -->
+    <link name="base_footprint"/>
+
+    <joint name="footprint_to_base" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin rpy="0 0 0" xyz="0 0 0.12"/>
+    </joint>
+
+    <!-- dd_502_robot body -->
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${body_radius}" length="${body_thick}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${body_radius}" length="${body_thick}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="${body_cm}" rpy="0 0 0"/>
+            <mass value="${body_mass}"/>
+            <inertia ixx="${body_ixx}" ixy="${body_ixy}" ixz="${body_ixz}" iyy="${body_iyy}" iyz="${body_iyz}" izz="${body_izz}"/>
+        </inertial>
+    </link>
+
+    <gazebo reference="base_link">
+        <material>Gazebo/White</material>
+        <mu1>0.4</mu1>
+        <mu2>0.4</mu2>
+    </gazebo>
+
+    <!-- dd_502_robot right wheel -->
+    <xacro:wheel 
+        name="right_wheel"  
+        trans ="0 -0.1625 -0.04"
+        rot ="-1.57075 0 0" 
+        parent="base_link"/>
+    
+    <!-- dd_502_robot left wheel -->
+    <xacro:wheel 
+        name="left_wheel"  
+        trans ="0 0.1625 -0.04"
+        rot ="-1.57075 0 0" 
+        parent="base_link"/>
+    
+    <!-- dd_502_robot front caster -->
+    <xacro:caster 
+        name="front_caster"  
+        trans ="0.13 0 -0.08"
+        rot ="0 0 0" 
+        parent="base_link"/>
+    
+    <!-- dd_502_robot back caster -->
+    <xacro:caster 
+        name="back_caster"  
+        trans ="-0.13 0 -0.08"
+        rot ="0 0 0" 
+        parent="base_link"/>
+    
+    <!-- differential drive controller plugins-->
+    <gazebo>
+        <plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+
+            <!-- Plugin update rate in Hz -->
+            <updateRate>${update_rate}</updateRate>
+
+            <!-- Name of left joint, defaults to `left_joint` -->
+            <leftJoint>base_link_to_left_wheel</leftJoint>
+
+            <!-- Name of right joint, defaults to `right_joint` -->
+            <rightJoint>base_link_to_right_wheel</rightJoint>
+
+            <!-- The distance from the center of one wheel to the other, in meters, defaults to 0.34 m -->
+            <wheelSeparation>0.3250</wheelSeparation>
+
+            <!-- Diameter of the wheels, in meters, defaults to 0.15 m -->
+            <wheelDiameter>0.15</wheelDiameter>
+
+            <!-- Wheel acceleration, in rad/s^2, defaults to 0.0 rad/s^2 -->
+            <wheelAcceleration>0</wheelAcceleration>
+
+            <!-- Maximum torque which the wheels can produce, in Nm, defaults to 5 Nm -->
+            <wheelTorque>5</wheelTorque>
+
+            <!-- Topic to receive geometry_msgs/Twist message commands, defaults to `cmd_vel` -->
+            <commandTopic>cmd_vel</commandTopic>
+
+            <!-- Topic to publish nav_msgs/Odometry messages, defaults to `odom` -->
+            <odometryTopic>odom</odometryTopic>
+
+            <!-- Odometry frame, defaults to `odom` -->
+            <odometryFrame>odom</odometryFrame>
+
+            <!-- Robot frame to calculate odometry from, defaults to `base_footprint` -->
+            <robotBaseFrame>base_footprint</robotBaseFrame>
+
+            <!-- Odometry source, 0 for ENCODER, 1 for WORLD, defaults to WORLD -->
+            <odometrySource>1</odometrySource>
+
+            <!-- Set to true to publish transforms for the wheel links, defaults to false -->
+            <publishWheelTF>true</publishWheelTF>
+
+            <!-- Set to true to publish transforms for the odometry, defaults to true -->
+            <publishOdom>true</publishOdom>
+
+            <!-- Set to true to publish sensor_msgs/JointState on /joint_states for the wheel joints, defaults to false -->
+            <publishWheelJointState>true</publishWheelJointState>
+
+            <!-- Set to true to swap right and left wheels, defaults to true -->
+            <legacyMode>false</legacyMode>
+        </plugin>
+    </gazebo>
+
+    <!-- Hokuyo Laser -->
+    <joint name="hokuyo_joint" type="fixed">
+        <!--axis xyz="0 1 0" /-->
+        <origin xyz="0 0 ${lider_position}" rpy="0 0 0"/>
+        <parent link="base_link"/>
+        <child link="hokuyo_link"/>
+    </joint>
+
+    <link name="hokuyo_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <!--mesh filename="package://rrbot_description/meshes/hokuyo.dae"/-->
+                <cylinder radius="0.05" length="0.1"/>
+            </geometry>
+        </visual>
+
+        <inertial>
+            <mass value="1e-5" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+        </inertial>
+    </link>
+
+    <!-- laser scaner plugins-->
+    <!-- hokuyo -->
+    <gazebo reference="hokuyo_link">
+        <material>Gazebo/Orange</material>
+
+        <sensor type="gpu_ray" name="head_hokuyo_sensor">
+            <pose>0 0 0 0 0 0</pose>
+            <visualize>false</visualize>
+            <update_rate>40</update_rate>
+            <ray>
+                <scan>
+                    <horizontal>
+                        <samples>720</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-1.570796</min_angle>
+                        <max_angle>1.570796</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.10</min>
+                    <max>30.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise parameters based on published spec for Hokuyo laser
+                    achieving "+-30mm" accuracy at range < 10m.  A mean of 0.0m and
+                    stddev of 0.01m will put 99.7% of samples within 0.03m of the true
+                    reading. -->
+                    <mean>0.0</mean>
+                    <stddev>0.01</stddev>
+                </noise>
+            </ray>
+            <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_gpu_laser.so">
+                <topicName>/dd_502_robot/laser/scan</topicName>
+                <frameName>hokuyo_link</frameName>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    <!-- Camera joint -->
+    <joint name="camera_joint" type="fixed">
+        <!--axis xyz="0 1 0" /-->
+        <origin xyz="${camera_position} 0 0" rpy="0 0 0"/>
+        <parent link="base_link"/>
+        <child link="camera_link"/>
+    </joint>
+
+    <!-- Camera link -->
+    <link name="camera_link">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${camera_size} ${camera_size} ${camera_size}"/>
+            </geometry>
+        </collision>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${camera_size} ${camera_size} ${camera_size}"/>
+            </geometry>
+        </visual>
+
+        <inertial>
+            <mass value="1e-5" />
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+            </inertial>
+    </link>
+
+    <!-- camera plugins-->
+    <gazebo reference="camera_link">
+        <material>Gazebo/Orange</material>
+        <sensor type="camera" name="camera1">
+            <update_rate>30.0</update_rate>
+            <camera name="head">
+                <horizontal_fov>1.3962634</horizontal_fov>
+                <image>
+                    <width>800</width>
+                    <height>800</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise is sampled independently per pixel on each frame.
+                        That pixel's noise value is added to each of its color
+                        channels, which at that point lie in the range [0,1]. -->
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+            <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>0.0</updateRate>
+                <cameraName>dd_502_robot/camera1</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>camera_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>0.0</distortionK1>
+                <distortionK2>0.0</distortionK2>
+                <distortionK3>0.0</distortionK3>
+                <distortionT1>0.0</distortionT1>
+                <distortionT2>0.0</distortionT2>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+</robot>

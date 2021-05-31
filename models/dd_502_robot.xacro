@@ -1,0 +1,156 @@
+<?xml version="1.0"?>
+<robot name = "robot_502" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="body_radius" value="0.15" />
+    <xacro:property name="body_thick" value="0.15" />
+
+    <xacro:property name="body_mass" value="5" />
+    <xacro:property name="body_cm" value="0 0 0" />
+    <xacro:property name="body_ixx" value="0.001"/>
+    <xacro:property name="body_ixy" value="0.001"/>
+    <xacro:property name="body_ixz" value="0.001"/>
+    <xacro:property name="body_iyy" value="0.001"/>
+    <xacro:property name="body_iyz" value="0.001"/>
+    <xacro:property name="body_izz" value="0.001"/>
+
+    <xacro:property name="wheel_radius" value="0.075" />
+    <xacro:property name="wheel_thick" value="0.025" />
+
+    <xacro:property name="wheel_mass" value="0.2" />
+    <xacro:property name="wheel_cm" value="0 0 0" />
+    <xacro:property name="wheel_ixx" value="0.001"/>
+    <xacro:property name="wheel_ixy" value="0.001"/>
+    <xacro:property name="wheel_ixz" value="0.001"/>
+    <xacro:property name="wheel_iyy" value="0.001"/>
+    <xacro:property name="wheel_iyz" value="0.001"/>
+    <xacro:property name="wheel_izz" value="0.001"/>
+
+    <xacro:property name="caster_base_radius" value="0.02" />
+    <xacro:property name="caster_base_thick" value="0.02" />
+    <xacro:property name="caster_ball_radius" value="0.015" />
+
+    <xacro:macro name="wheel" params="name trans rot parent">
+        <joint name="${parent}_to_${name}" type="continuous">
+            <parent link="${parent}"/>
+            <child link="${name}_wheel"/>
+            <origin rpy="${rot}" xyz="${trans}"/>
+            <axis xyz="0 0 1"/>
+            <limit effort="30" velocity="1"/>
+            <dynamics damping="0" fiction="0"/>
+        </joint>
+    
+        <link name="${name}_wheel">
+            <visual>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_thick}"/>
+                </geometry>
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_thick}"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <origin xyz="${wheel_cm}" rpy="0 0 0"/>
+                <mass value="${wheel_mass}"/>
+                <inertia ixx="${wheel_ixx}" ixy="${wheel_ixy}" ixz="${wheel_ixz}" iyy="${wheel_iyy}" iyz="${wheel_iyz}" izz="${wheel_izz}"/>
+            </inertial>
+        </link>
+    </xacro:macro>
+
+    <xacro:macro name="caster" params="name trans rot parent">
+        <joint name="${parent}_to_base_${name}" type="fixed">
+            <parent link="${parent}"/>
+            <child link="base_${name}"/>
+            <origin rpy="${rot}" xyz="${trans}"/>
+        </joint>
+    
+        <link name="base_${name}">
+            <visual>
+                <geometry>
+                    <cylinder radius="${caster_base_radius}" length="${caster_base_thick}"/>
+                </geometry>
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder radius="${caster_base_radius}" length="${caster_base_thick}"/>
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="base_${name}_to_ball_${name}" type="fixed">
+            <parent link="base_${name}"/>
+            <child link="ball_${name}"/>
+            <origin rpy="0 0 0" xyz="0 0 -0.025"/>
+        </joint>
+    
+        <link name="ball_${name}">
+            <visual>
+                <geometry>
+                    <sphere radius="${caster_ball_radius}"/>
+                </geometry>
+            </visual>
+            <collision>
+                <geometry>
+                    <sphere radius="${caster_ball_radius}"/>
+                </geometry>
+            </collision>
+        </link>
+
+    </xacro:macro>
+
+    <link name="base_footprint"/>
+
+    <joint name="footprint_to_base" type="fixed">
+        <parent link="base_footprint"/>
+        <child link="base_link"/>
+        <origin rpy="0 0 0" xyz="0 0 0.125"/>
+    </joint>
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${body_radius}" length="${body_thick}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${body_radius}" length="${body_thick}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="${body_cm}" rpy="0 0 0"/>
+            <mass value="${body_mass}"/>
+            <inertia ixx="${body_ixx}" ixy="${body_ixy}" ixz="${body_ixz}" iyy="${body_iyy}" iyz="${body_iyz}" izz="${body_izz}"/>
+        </inertial>
+    </link>
+
+    <xacro:wheel 
+        name="right_wheel"  
+        trans ="0 -0.1625 -0.05"
+        rot ="-1.57075 0 0" 
+        parent="base_link"/>
+    
+    <xacro:wheel 
+        name="left_wheel"  
+        trans ="0 0.1625 -0.05"
+        rot ="-1.57075 0 0" 
+        parent="base_link"/>
+    
+    <xacro:caster 
+        name="front_caster"  
+        trans ="0.10 0 -0.085"
+        rot ="0 0 0" 
+        parent="base_link"/>
+    
+    <xacro:caster 
+        name="back_caster"  
+        trans ="-0.1 0 -0.085"
+        rot ="0 0 0" 
+        parent="base_link"/>
+    
+ 
+
+
+    
+</robot>

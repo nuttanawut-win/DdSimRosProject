@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node name="teleop_keyboard" pkg="dd_502_sim" type="teleop_keyboard.py" />
+
+</launch>

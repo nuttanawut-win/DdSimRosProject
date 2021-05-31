@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- display robot description in rviz -->
+    <include file="$(find dd_502_sim)/launch/display.launch"/>
+
+    <!-- create world and spawn robot in gazebo -->
+    <include file="$(find dd_502_sim)/launch/dd_502_world.launch"/>
+
+    <!-- teleoperation with keyboard -->
+    <include file="$(find dd_502_sim)/launch/tele_keyboard.launch"/>
+
+    <!-- create map -->
+    <include file="$(find gmapping)/launch/slam_gmapping_pr2.launch"/>
+</launch>
